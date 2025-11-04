@@ -1,0 +1,24 @@
+
+class JobPost {
+  final String companyName;
+  final String logo;
+  final String title;
+  final String description;
+  final List<String> skills;
+  final String experience;
+  final String location;
+  final int mutualConnections;
+  final String image;
+
+  JobPost({
+    required this.companyName,
+    required this.logo,
+    required this.title,
+    required this.description,
+    required this.skills,
+    required this.experience,
+    required this.location,
+    required this.mutualConnections,
+    required this.image,
+  });
+}
