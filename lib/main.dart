@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:levelup/pages/home/home.dart';
+import 'package:levelup/pages/authScreens/login.dart';
 
 void main() {
   runApp(const MyApp());
@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         visualDensity: VisualDensity.adaptivePlatformDensity,
         fontFamily: 'Inter',
       ),
-      home: HomePage(),
+      home: LoginPage(),
     );
   }
 }

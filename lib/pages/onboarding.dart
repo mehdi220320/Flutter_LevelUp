@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/widgets/gradient_button.dart';
-import 'login.dart';
+import 'authScreens/login.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
