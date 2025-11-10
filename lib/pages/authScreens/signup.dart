@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/pages/authScreens/login.dart';
+import 'package:levelup/pages/home/home.dart';
+import 'package:levelup/providers/auth_provider.dart';
 import 'package:levelup/widgets/gradient_button.dart';
+import 'package:provider/provider.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -300,19 +303,45 @@ class _SignupPageState extends State<SignupPage> {
 
                     // Signup button
                     GradientButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Add signup logic here
-                          final userData = {
-                            "username": _usernameController.text,
-                            "email": _emailController.text,
-                            "password": _passwordController.text,
-                            "first_name": _firstNameController.text,
-                            "last_name": _lastNameController.text,
-                          };
-                          print('User Data: $userData');
+                          final username = _usernameController.text.trim();
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+                          final firstName = _firstNameController.text.trim();
+                          final lastName = _lastNameController.text.trim();
 
-                          // You can now send this data to your API
+                          try {
+                            // Call the provider to register
+                            await Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            ).register(
+                              username: username,
+                              email: email,
+                              password: password,
+                              firstName: firstName,
+                              lastName: lastName,
+                            );
+
+                            // Navigate automatically after successful signup
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
+                          } catch (e) {
+                            // Display error message
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Erreur d'inscription : ${e.toString()}",
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
                         }
                       },
                       text: "S'inscrire",

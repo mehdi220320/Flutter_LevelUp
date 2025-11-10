@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/pages/authScreens/signup.dart';
+import 'package:levelup/pages/home/home.dart';
+import 'package:levelup/providers/auth_provider.dart';
 import 'package:levelup/widgets/gradient_button.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -186,11 +189,33 @@ class _LoginPageState extends State<LoginPage> {
 
                     // Login button
                     GradientButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (_formKey.currentState!.validate()) {
-                          // Add login logic here
-                          print('Email: ${_emailController.text}');
-                          print('Password: ${_passwordController.text}');
+                          final email = _emailController.text.trim();
+                          final password = _passwordController.text.trim();
+
+                          try {
+                            await Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            ).login(email: email, password: password);
+
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(),
+                              ),
+                            );
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Erreur de connexion : ${e.toString()}",
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
                         }
                       },
                       text: "Se connecter",
