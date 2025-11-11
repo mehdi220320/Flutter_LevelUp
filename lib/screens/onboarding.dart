@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/widgets/gradient_button.dart';
-import 'authScreens/login.dart';
+import '../pages/authScreens/login.dart';
 
 class OnboardingPage extends StatefulWidget {
   @override
@@ -39,7 +39,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button (top right)
             Align(
               alignment: Alignment.topRight,
               child: Padding(
@@ -52,7 +51,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                     );
                   },
                   child: Text(
-                    "Skip", // Changed from "Passer"
+                    "Skip", 
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 16,
@@ -62,8 +61,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
                 ),
               ),
             ),
-
-            // PageView for onboarding slides
             Expanded(
               flex: 3,
               child: PageView.builder(
@@ -80,7 +77,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
             ),
 
-            // Dots indicator
             Container(
               height: 50,
               child: Row(
@@ -89,7 +85,6 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
             ),
 
-            // Start button
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: GradientButton(
@@ -107,8 +102,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   }
                 },
                 text: _currentPage == _onboardingItems.length - 1
-                    ? "Get Started" // Changed from "Commencer"
-                    : "Next", // Changed from "Suivant"
+                    ? "Get Started" 
+                    : "Next", 
               ),
             ),
           ],

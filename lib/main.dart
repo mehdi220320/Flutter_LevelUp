@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:levelup/pages/authScreens/login.dart';
+import 'package:levelup/screens/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 
@@ -9,7 +9,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
@@ -21,7 +21,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: LoginPage(),
+      title: 'LevelUp',
+      home: const SplashScreen(), 
     );
   }
 }

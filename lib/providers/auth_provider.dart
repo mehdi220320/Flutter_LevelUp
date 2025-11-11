@@ -36,10 +36,11 @@ class AuthProvider extends ChangeNotifier {
       _user = result['user'];
     } catch (e) {
       _error = e.toString();
+      rethrow;
+    } finally {
+      _loading = false;
+      notifyListeners();
     }
-
-    _loading = false;
-    notifyListeners();
   }
 
   Future<void> login({required String email, required String password}) async {
@@ -52,15 +53,24 @@ class AuthProvider extends ChangeNotifier {
       _user = result['user'];
     } catch (e) {
       _error = e.toString();
+      rethrow;
+    } finally {
+      _loading = false;
+      notifyListeners();
     }
-
-    _loading = false;
-    notifyListeners();
   }
 
   Future<void> logout() async {
     _user = null;
     await _authService.clearTokens();
+    notifyListeners();
+  }
+
+  Future<void> loadUser() async {
+    final storedUser = await _authService.getUser();
+    if (storedUser != null) {
+      _user = storedUser;
+    }
     notifyListeners();
   }
 }

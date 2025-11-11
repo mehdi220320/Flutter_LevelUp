@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:levelup/models/JobPost.dart';
+import 'package:levelup/pages/authScreens/login.dart';
+import 'package:levelup/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -1008,7 +1011,20 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
     return ListTile(
       leading: Icon(icon, color: Colors.white),
       title: Text(text, style: const TextStyle(color: Colors.white)),
-      onTap: () => Navigator.pop(context),
+      onTap: () async {
+        if (text == "Logout") {
+          await Provider.of<AuthProvider>(context, listen: false).logout();
+
+          // Close the bottom sheet first
+          Navigator.of(context).pop();
+
+          // Then navigate to login and clear navigation stack
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => LoginPage()),
+            (route) => false,
+          );
+        }
+      },
     );
   }
 }
