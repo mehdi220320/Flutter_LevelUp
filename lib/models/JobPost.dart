@@ -20,4 +20,31 @@ class JobPost {
     required this.mutualConnections,
     required this.image,
   });
+  Map<String, dynamic> toJson() {
+    return {
+      'companyName': companyName,
+      'logo': logo,
+      'title': title,
+      'description': description,
+      'skills': skills,
+      'experience': experience,
+      'location': location,
+      'mutualConnections': mutualConnections,
+      'image': image,
+    };
+  }
+
+  factory JobPost.fromJson(Map<String, dynamic> json) {
+    return JobPost(
+      companyName: json['companyName'],
+      logo: json['logo'],
+      title: json['title'],
+      description: json['description'],
+      skills: List<String>.from(json['skills']),
+      experience: json['experience'],
+      location: json['location'],
+      mutualConnections: json['mutualConnections'],
+      image: json['image'],
+    );
+  }
 }

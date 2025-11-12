@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/widgets/gradient_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../pages/authScreens/login.dart';
 
 class OnboardingPage extends StatefulWidget {
@@ -32,35 +33,51 @@ class _OnboardingPageState extends State<OnboardingPage> {
     ),
   ];
 
+  // Function to mark onboarding as completed
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('hasSeenOnboarding', true);
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => LoginPage()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xFF0A0A0A), // Deep black background
       body: SafeArea(
         child: Column(
           children: [
+            // Skip Button
             Align(
               alignment: Alignment.topRight,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
-                  },
-                  child: Text(
-                    "Skip", 
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Color(0xFF1A1A1A), // Dark gray container
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Color(0xFF333333), width: 1),
+                  ),
+                  child: TextButton(
+                    onPressed: _completeOnboarding,
+                    child: Text(
+                      "Skip",
+                      style: TextStyle(
+                        color: Color(0xFF888888), // Medium gray text
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
+
+            // Page View
             Expanded(
               flex: 3,
               child: PageView.builder(
@@ -77,6 +94,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
             ),
 
+            // Page Indicators
             Container(
               height: 50,
               child: Row(
@@ -85,15 +103,13 @@ class _OnboardingPageState extends State<OnboardingPage> {
               ),
             ),
 
+            // Next/Get Started Button
             Padding(
               padding: const EdgeInsets.all(24.0),
               child: GradientButton(
                 onPressed: () {
                   if (_currentPage == _onboardingItems.length - 1) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginPage()),
-                    );
+                    _completeOnboarding();
                   } else {
                     _pageController.nextPage(
                       duration: Duration(milliseconds: 300),
@@ -102,8 +118,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   }
                 },
                 text: _currentPage == _onboardingItems.length - 1
-                    ? "Get Started" 
-                    : "Next", 
+                    ? "Get Started"
+                    : "Next",
               ),
             ),
           ],
@@ -116,13 +132,15 @@ class _OnboardingPageState extends State<OnboardingPage> {
     List<Widget> indicators = [];
     for (int i = 0; i < _onboardingItems.length; i++) {
       indicators.add(
-        Container(
-          width: 8.0,
+        AnimatedContainer(
+          duration: Duration(milliseconds: 300),
+          width: _currentPage == i ? 24.0 : 8.0,
           height: 8.0,
           margin: EdgeInsets.symmetric(horizontal: 4.0),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _currentPage == i ? Color(0xFF6C63FF) : Colors.grey[300],
+            shape: _currentPage == i ? BoxShape.rectangle : BoxShape.circle,
+            borderRadius: _currentPage == i ? BorderRadius.circular(12) : null,
+            color: _currentPage == i ? Color(0xFF6C63FF) : Color(0xFF333333),
           ),
         ),
       );
@@ -155,11 +173,24 @@ class OnboardingSlide extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Illustration
+          // Illustration with modern container
           Expanded(
             flex: 2,
             child: Container(
-              child: Image.asset(item.image, fit: BoxFit.contain),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 20,
+                    offset: Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(20),
+                child: Image.asset(item.image, fit: BoxFit.cover),
+              ),
             ),
           ),
 
@@ -170,8 +201,9 @@ class OnboardingSlide extends StatelessWidget {
             item.title,
             style: TextStyle(
               fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D2B3A),
+              fontWeight: FontWeight.w700,
+              color: Colors.white, // White text for dark background
+              height: 1.2,
             ),
             textAlign: TextAlign.center,
           ),
@@ -183,8 +215,9 @@ class OnboardingSlide extends StatelessWidget {
             item.description,
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
-              height: 1.5,
+              color: Color(0xFFAAAAAA), 
+              height: 1.6,
+              fontWeight: FontWeight.w400,
             ),
             textAlign: TextAlign.center,
           ),
