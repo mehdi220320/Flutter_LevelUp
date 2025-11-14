@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:levelup/providers/offer_provider.dart';
 import 'package:levelup/screens/splash_screen.dart';
 import 'package:levelup/screens/onboarding.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +9,10 @@ import 'providers/auth_provider.dart';
 void main() {
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => AuthProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => OfferProvider()),
+      ],
       child: const MyApp(),
     ),
   );

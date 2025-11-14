@@ -2,9 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
+import '../models/environnement.dart';
 
 class AuthService {
-  final String baseUrl = 'http://127.0.0.1:8000/api';
+  final String baseUrl = Environnement().url;
   final _storage = const FlutterSecureStorage();
 
   Future<void> _saveTokens(String access, String refresh, User user) async {

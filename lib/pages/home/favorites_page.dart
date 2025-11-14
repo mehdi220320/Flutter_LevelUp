@@ -1,30 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:levelup/models/JobPost.dart';
+import 'package:levelup/models/Offer.dart';
 
 class FavoritesPage extends StatelessWidget {
-  final List<JobPost> favoriteJobs;
-  final Function(List<JobPost>) onFavoritesUpdated;
+  final List<Offer> favoriteOffers;
+  final Function(List<Offer>) onFavoritesUpdated;
 
   const FavoritesPage({
     super.key,
-    required this.favoriteJobs,
+    required this.favoriteOffers,
     required this.onFavoritesUpdated,
   });
 
   void _removeFromFavorites(int index, BuildContext context) {
-    final updatedFavorites = List<JobPost>.from(favoriteJobs);
+    final updatedFavorites = List<Offer>.from(favoriteOffers);
     updatedFavorites.removeAt(index);
     onFavoritesUpdated(updatedFavorites);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Removed from favorites'),
         backgroundColor: Colors.red,
       ),
     );
   }
 
-  Widget _buildFavoriteJobCard(JobPost job, int index, BuildContext context) {
+  Widget _buildFavoriteOfferCard(Offer offer, int index, BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -43,7 +43,7 @@ class FavoritesPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(25),
             ),
             child: Center(
-              child: Text(job.logo, style: const TextStyle(fontSize: 20)),
+              child: Text(offer.logo, style: const TextStyle(fontSize: 20)),
             ),
           ),
           const SizedBox(width: 15),
@@ -52,7 +52,7 @@ class FavoritesPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  job.companyName,
+                  offer.company,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
@@ -60,18 +60,45 @@ class FavoritesPage extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  job.title,
+                  offer.title,
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 14,
                   ),
                 ),
                 Text(
-                  "${job.experience} • ${job.location}",
+                  "${offer.experience} • ${offer.location}",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 12,
                   ),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: offer.requiredSkills
+                      .take(3)
+                      .map(
+                        (skill) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            skill.name,
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontSize: 10,
+                            ),
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ],
             ),
@@ -98,9 +125,9 @@ class FavoritesPage extends StatelessWidget {
               color: Colors.white.withOpacity(0.5),
             ),
             const SizedBox(height: 20),
-            Text(
+            const Text(
               "No Favorites Yet",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -122,7 +149,7 @@ class FavoritesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (favoriteJobs.isEmpty) {
+    if (favoriteOffers.isEmpty) {
       return _buildEmptyState();
     }
 
@@ -133,7 +160,7 @@ class FavoritesPage extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text(
-              "Your Favorite Jobs (${favoriteJobs.length})",
+              "Your Favorite Jobs (${favoriteOffers.length})",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 24,
@@ -144,10 +171,10 @@ class FavoritesPage extends StatelessWidget {
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: favoriteJobs.length,
+              itemCount: favoriteOffers.length,
               itemBuilder: (context, index) {
-                final job = favoriteJobs[index];
-                return _buildFavoriteJobCard(job, index, context);
+                final offer = favoriteOffers[index];
+                return _buildFavoriteOfferCard(offer, index, context);
               },
             ),
           ),

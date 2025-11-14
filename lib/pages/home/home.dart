@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:levelup/pages/authScreens/login.dart';
+import 'package:levelup/pages/home/swipe_page.dart';
 import 'package:levelup/pages/home/favorites_page.dart';
 import 'package:levelup/pages/home/forum_page.dart';
-import 'package:levelup/pages/home/swipe_page.dart';
+import 'package:levelup/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:levelup/models/JobPost.dart';
+import 'package:levelup/models/Offer.dart';
 import 'dart:convert';
+import 'package:levelup/providers/offer_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,35 +19,40 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   int _currentBottomNavIndex = 0;
-  List<JobPost> _favoriteJobs = [];
+  List<Offer> _favoriteOffers = [];
 
   @override
   void initState() {
     super.initState();
     _loadFavorites();
+    // Fetch offers when home page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final offerProvider = Provider.of<OfferProvider>(context, listen: false);
+      offerProvider.fetchOffers();
+    });
   }
 
   Future<void> _loadFavorites() async {
     final prefs = await SharedPreferences.getInstance();
-    final favoritesJson = prefs.getStringList('favorite_jobs') ?? [];
+    final favoritesJson = prefs.getStringList('favorite_offers') ?? [];
 
     setState(() {
-      _favoriteJobs = favoritesJson.map((jsonString) {
+      _favoriteOffers = favoritesJson.map((jsonString) {
         final jsonMap = json.decode(jsonString) as Map<String, dynamic>;
-        return JobPost.fromJson(jsonMap);
+        return Offer.fromJson(jsonMap);
       }).toList();
     });
   }
 
-  Future<void> _updateFavorites(List<JobPost> favorites) async {
+  Future<void> _updateFavorites(List<Offer> favorites) async {
     final prefs = await SharedPreferences.getInstance();
     final favoritesJson = favorites
-        .map((job) => json.encode(job.toJson()))
+        .map((offer) => json.encode(offer.toJson()))
         .toList();
-    await prefs.setStringList('favorite_jobs', favoritesJson);
+    await prefs.setStringList('favorite_offers', favoritesJson);
 
     setState(() {
-      _favoriteJobs = favorites;
+      _favoriteOffers = favorites;
     });
   }
 
@@ -85,9 +94,17 @@ class HomePageState extends State<HomePage> {
     return ListTile(
       leading: Icon(icon, color: Colors.white),
       title: Text(text, style: const TextStyle(color: Colors.white)),
-      onTap: () {
-        Navigator.of(context).pop();
-        // Handle menu options here
+      onTap: () async {
+        if (text == "Logout") {
+          await Provider.of<AuthProvider>(context, listen: false).logout();
+          Navigator.of(context).pop();
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => LoginPage()),
+            (route) => false,
+          );
+        } else {
+          Navigator.of(context).pop();
+        }
       },
     );
   }
@@ -97,7 +114,7 @@ class HomePageState extends State<HomePage> {
       case 0:
         return "JobSwipe";
       case 1:
-        return "Favorites (${_favoriteJobs.length})";
+        return "Favorites (${_favoriteOffers.length})";
       case 2:
         return "Forum";
       default:
@@ -109,12 +126,12 @@ class HomePageState extends State<HomePage> {
     switch (_currentBottomNavIndex) {
       case 0:
         return SwipePage(
-          favoriteJobs: _favoriteJobs,
+          favoriteOffers: _favoriteOffers,
           onFavoritesUpdated: _updateFavorites,
         );
       case 1:
         return FavoritesPage(
-          favoriteJobs: _favoriteJobs,
+          favoriteOffers: _favoriteOffers,
           onFavoritesUpdated: _updateFavorites,
         );
       case 2:
@@ -141,7 +158,7 @@ class HomePageState extends State<HomePage> {
           icon: Stack(
             children: [
               const Icon(Icons.favorite),
-              if (_favoriteJobs.isNotEmpty)
+              if (_favoriteOffers.isNotEmpty)
                 Positioned(
                   right: 0,
                   top: 0,
@@ -156,7 +173,7 @@ class HomePageState extends State<HomePage> {
                       minHeight: 14,
                     ),
                     child: Text(
-                      _favoriteJobs.length.toString(),
+                      _favoriteOffers.length.toString(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 8,

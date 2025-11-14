@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
-import 'package:levelup/models/JobPost.dart';
+import 'package:levelup/models/Offer.dart';
+import 'package:provider/provider.dart';
+import 'package:levelup/providers/offer_provider.dart';
 
 class SwipePage extends StatefulWidget {
-  final List<JobPost> favoriteJobs;
-  final Function(List<JobPost>) onFavoritesUpdated;
+  final List<Offer> favoriteOffers;
+  final Function(List<Offer>) onFavoritesUpdated;
 
   const SwipePage({
     super.key,
-    required this.favoriteJobs,
+    required this.favoriteOffers,
     required this.onFavoritesUpdated,
   });
 
@@ -32,57 +34,6 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
   late Animation<double> _infoOpacityAnimation;
 
   final CardSwiperController _swiperController = CardSwiperController();
-
-  final List<JobPost> jobPosts = [
-    JobPost(
-      companyName: "Alibra",
-      logo: "🚀",
-      title: "Senior Flutter Developer",
-      description:
-          "Hey! We're looking for a Flutter developer who loves clean code and building amazing mobile experiences. If you're passionate about mobile tech, you'll fit right in!",
-      skills: ["Flutter", "Dart", "Firebase", "REST API"],
-      experience: "3+ years",
-      location: "San Francisco, CA",
-      mutualConnections: 3,
-      image: "assets/images/landingPageHero.png",
-    ),
-    JobPost(
-      companyName: "TechNova",
-      logo: "📊",
-      title: "Data Scientist",
-      description:
-          "Join our data team to solve complex problems! We value creativity and analytical thinking. Bring your ML skills and let's build something amazing together!",
-      skills: ["Python", "Machine Learning", "SQL", "TensorFlow"],
-      experience: "2+ years",
-      location: "Remote",
-      mutualConnections: 2,
-      image: "assets/images/landingPageHero2.jpg",
-    ),
-    JobPost(
-      companyName: "DesignHub",
-      logo: "🎨",
-      title: "UI/UX Designer",
-      description:
-          "Love creating beautiful interfaces? We're looking for a designer who understands users and can translate complex ideas into intuitive designs.",
-      skills: ["Figma", "Adobe XD", "User Research", "Prototyping"],
-      experience: "2+ years",
-      location: "New York, NY",
-      mutualConnections: 5,
-      image: "assets/images/levelUp.jpg",
-    ),
-    JobPost(
-      companyName: "CloudSystems",
-      logo: "☁️",
-      title: "DevOps Engineer",
-      description:
-          "Passionate about infrastructure and automation? Join our team to build scalable systems and help us deliver amazing products to millions of users.",
-      skills: ["AWS", "Docker", "Kubernetes", "CI/CD"],
-      experience: "4+ years",
-      location: "Austin, TX",
-      mutualConnections: 1,
-      image: "assets/images/landingPageHero.png",
-    ),
-  ];
 
   @override
   void initState() {
@@ -162,20 +113,25 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
   }
 
   void _handleButtonTap(bool isLike) {
+    final offerProvider = Provider.of<OfferProvider>(context, listen: false);
+    final offers = offerProvider.offers;
+
+    if (offers.isEmpty) return;
+
     _showSwipeFeedback(isLike);
 
     // Update favorites
-    List<JobPost> updatedFavorites = List.from(widget.favoriteJobs);
-    final currentJob = jobPosts[_currentCardIndex];
+    List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
+    final currentOffer = offers[_currentCardIndex];
 
     if (isLike) {
       // Add to favorites when liking
-      if (!updatedFavorites.contains(currentJob)) {
-        updatedFavorites.add(currentJob);
+      if (!updatedFavorites.contains(currentOffer)) {
+        updatedFavorites.add(currentOffer);
       }
     } else {
       // Remove from favorites when disliking
-      updatedFavorites.remove(currentJob);
+      updatedFavorites.remove(currentOffer);
     }
 
     widget.onFavoritesUpdated(updatedFavorites);
@@ -332,88 +288,193 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        _buildSwiper(),
-
-        // Info Popup
-        AnimatedBuilder(
-          animation: _infoController,
-          builder: (context, child) {
-            return Opacity(
-              opacity: _infoOpacityAnimation.value,
-              child: Transform.scale(
-                scale: _infoScaleAnimation.value,
-                child: Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 100),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1A1A1A).withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
-                          blurRadius: 20,
-                          spreadRadius: 5,
-                        ),
-                      ],
-                      border: Border.all(color: Colors.blue.withOpacity(0.5)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.thumb_up_alt, color: Colors.green, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Like = Save to Favorites",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 1,
-                          height: 20,
-                          color: Colors.white.withOpacity(0.3),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(Icons.close, color: Colors.red, size: 20),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Dislike = Skip",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ],
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: Colors.white),
+          SizedBox(height: 20),
+          Text(
+            "Loading job offers...",
+            style: TextStyle(color: Colors.white, fontSize: 16),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSwiper() {
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline, color: Colors.red, size: 60),
+          SizedBox(height: 20),
+          Text(
+            "Error loading offers",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            error,
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              final offerProvider = Provider.of<OfferProvider>(
+                context,
+                listen: false,
+              );
+              offerProvider.fetchOffers();
+            },
+            child: Text("Try Again"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_off,
+            color: Colors.white.withOpacity(0.5),
+            size: 60,
+          ),
+          SizedBox(height: 20),
+          Text(
+            "No job offers available",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          Text(
+            "Check back later for new opportunities",
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<OfferProvider>(
+      builder: (context, offerProvider, child) {
+        if (offerProvider.loading) {
+          return _buildLoadingState();
+        }
+
+        if (offerProvider.error != null) {
+          return _buildErrorState(offerProvider.error!);
+        }
+
+        if (offerProvider.offers.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return Stack(
+          children: [
+            _buildSwiper(offerProvider.offers),
+
+            // Info Popup
+            AnimatedBuilder(
+              animation: _infoController,
+              builder: (context, child) {
+                return Opacity(
+                  opacity: _infoOpacityAnimation.value,
+                  child: Transform.scale(
+                    scale: _infoScaleAnimation.value,
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 100),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 15,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A1A1A).withOpacity(0.95),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.blue.withOpacity(0.5),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.thumb_up_alt,
+                              color: Colors.green,
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Like = Save to Favorites",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Container(
+                              width: 1,
+                              height: 20,
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(Icons.close, color: Colors.red, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Dislike = Skip",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSwiper(List<Offer> offers) {
     return Stack(
       children: [
         CardSwiper(
           controller: _swiperController,
-          cardsCount: jobPosts.length,
+          cardsCount: offers.length,
           onSwipe: (prev, current, direction) {
             if (current != null) {
               setState(() {
@@ -421,16 +482,16 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
               });
             }
 
-            List<JobPost> updatedFavorites = List.from(widget.favoriteJobs);
-            final currentJob = jobPosts[_currentCardIndex];
+            List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
+            final currentOffer = offers[_currentCardIndex];
 
             if (direction == CardSwiperDirection.right) {
-              if (!updatedFavorites.contains(currentJob)) {
-                updatedFavorites.add(currentJob);
+              if (!updatedFavorites.contains(currentOffer)) {
+                updatedFavorites.add(currentOffer);
               }
               _showSwipeFeedback(true);
             } else if (direction == CardSwiperDirection.left) {
-              updatedFavorites.remove(currentJob);
+              updatedFavorites.remove(currentOffer);
               _showSwipeFeedback(false);
             }
 
@@ -438,8 +499,8 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
             return true;
           },
           cardBuilder: (context, index, percentX, percentY) {
-            final job = jobPosts[index];
-            return _buildJobCard(job);
+            final offer = offers[index];
+            return _buildOfferCard(offer);
           },
           numberOfCardsDisplayed: 1,
           isLoop: true,
@@ -527,7 +588,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildJobCard(JobPost job) {
+  Widget _buildOfferCard(Offer offer) {
     return Container(
       width: MediaQuery.of(context).size.width,
       height: MediaQuery.of(context).size.height,
@@ -539,7 +600,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
             height: double.infinity,
             decoration: BoxDecoration(
               image: DecorationImage(
-                image: AssetImage(job.image),
+                image: AssetImage(offer.image),
                 fit: BoxFit.cover,
               ),
             ),
@@ -580,7 +641,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                       ),
                       child: Center(
                         child: Text(
-                          job.logo,
+                          offer.logo,
                           style: const TextStyle(fontSize: 20),
                         ),
                       ),
@@ -590,7 +651,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          job.companyName,
+                          offer.company,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -598,7 +659,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                           ),
                         ),
                         Text(
-                          "${job.experience} • ${job.location}",
+                          "${offer.experience} • ${offer.location}",
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.8),
                             fontSize: 14,
@@ -610,7 +671,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  job.title,
+                  offer.title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 32,
@@ -620,7 +681,9 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  job.description,
+                  offer.description.isNotEmpty
+                      ? offer.description
+                      : "Join our team and work on exciting projects with cutting-edge technologies.",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.9),
                     fontSize: 16,
@@ -629,7 +692,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 25),
                 Text(
-                  "What we're looking for:",
+                  "Required Skills:",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.8),
                     fontSize: 14,
@@ -640,7 +703,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
-                  children: job.skills
+                  children: offer.requiredSkills
                       .map(
                         (skill) => Container(
                           padding: const EdgeInsets.symmetric(
@@ -655,7 +718,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                             ),
                           ),
                           child: Text(
-                            skill,
+                            skill.name,
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
