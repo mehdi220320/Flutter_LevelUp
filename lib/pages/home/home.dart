@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:levelup/pages/authScreens/login.dart';
 import 'package:levelup/pages/home/swipe_page.dart';
 import 'package:levelup/pages/home/favorites_page.dart';
-import 'package:levelup/pages/home/forum_page.dart';
+import 'package:levelup/pages/home/ApplicationHistory_page.dart';
 import 'package:levelup/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -25,10 +25,9 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadFavorites();
-    // Fetch offers when home page initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final offerProvider = Provider.of<OfferProvider>(context, listen: false);
-      offerProvider.fetchOffers();
+      offerProvider.fetchRecommendedOffers();
     });
   }
 
@@ -116,7 +115,7 @@ class HomePageState extends State<HomePage> {
       case 1:
         return "Favorites (${_favoriteOffers.length})";
       case 2:
-        return "Forum";
+        return "History";
       default:
         return "JobSwipe";
     }
@@ -133,9 +132,10 @@ class HomePageState extends State<HomePage> {
         return FavoritesPage(
           favoriteOffers: _favoriteOffers,
           onFavoritesUpdated: _updateFavorites,
+          onRefreshFavorites: _loadFavorites,
         );
       case 2:
-        return const ForumPage();
+        return const ApplicationHistoryPage();
       default:
         return const SizedBox();
     }
@@ -187,7 +187,10 @@ class HomePageState extends State<HomePage> {
           ),
           label: 'Favorites',
         ),
-        const BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.history),
+          label: 'History',
+        ),
       ],
     );
   }

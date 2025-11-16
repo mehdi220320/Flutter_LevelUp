@@ -58,6 +58,18 @@ flutter:
     - assets/images/landingPageHero.png
     - assets/images/landingPageHero2.jpg
     - assets/images/levelUp.jpg
+    - assets/images/creative_design.jpeg
+    - assets/images/general_work.jpeg
+    - assets/images/support.jpeg
+    - assets/images/science_research.jpg
+    - assets/images/healthcare.jpeg
+    - assets/images/security.jpg
+    - assets/images/production.jpeg
+    - assets/images/sales_marketing.jpeg
+    - assets/images/finance.jpeg
+    - assets/images/management.jpeg
+    - assets/images/tech_development.jpg
+    - assets/images/education.jpeg
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

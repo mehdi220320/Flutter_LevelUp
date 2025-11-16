@@ -35,6 +35,9 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
 
   final CardSwiperController _swiperController = CardSwiperController();
 
+  // Add this list to track canceled offers
+  final List<Offer> _canceledOffers = [];
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +97,24 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  // Add this method to filter offers
+  List<Offer> _getFilteredOffers(List<Offer> allOffers) {
+    return allOffers.where((offer) {
+      // Remove offers that are in favorites
+      final isInFavorites = widget.favoriteOffers.any(
+        (fav) => fav.id == offer.id,
+      );
+      // Remove offers that are canceled
+      final isCanceled = _canceledOffers.any(
+        (canceled) => canceled.id == offer.id,
+      );
+      // Remove offers that are closed
+      final isClosed = offer.isClosed;
+
+      return !isInFavorites && !isCanceled && !isClosed;
+    }).toList();
+  }
+
   void _showSwipeFeedback(bool isLike) {
     setState(() {
       _showLike = isLike;
@@ -114,27 +135,31 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
 
   void _handleButtonTap(bool isLike) {
     final offerProvider = Provider.of<OfferProvider>(context, listen: false);
-    final offers = offerProvider.offers;
+    final allOffers = offerProvider.recommendedOffers;
+    final filteredOffers = _getFilteredOffers(allOffers);
 
-    if (offers.isEmpty) return;
+    if (filteredOffers.isEmpty) return;
 
     _showSwipeFeedback(isLike);
 
-    // Update favorites
-    List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
-    final currentOffer = offers[_currentCardIndex];
+    // Get the current offer from filtered list
+    final currentOffer = filteredOffers[_currentCardIndex];
 
     if (isLike) {
       // Add to favorites when liking
-      if (!updatedFavorites.contains(currentOffer)) {
+      List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
+      if (!updatedFavorites.any((fav) => fav.id == currentOffer.id)) {
         updatedFavorites.add(currentOffer);
+        widget.onFavoritesUpdated(updatedFavorites);
       }
     } else {
-      // Remove from favorites when disliking
-      updatedFavorites.remove(currentOffer);
+      // Add to canceled offers when disliking
+      if (!_canceledOffers.any((canceled) => canceled.id == currentOffer.id)) {
+        setState(() {
+          _canceledOffers.add(currentOffer);
+        });
+      }
     }
-
-    widget.onFavoritesUpdated(updatedFavorites);
 
     // Swipe the card
     if (isLike) {
@@ -332,7 +357,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                 context,
                 listen: false,
               );
-              offerProvider.fetchOffers();
+              offerProvider.fetchRecommendedOffers();
             },
             child: Text("Try Again"),
           ),
@@ -353,7 +378,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
           ),
           SizedBox(height: 20),
           Text(
-            "No job offers available",
+            "No more job offers available",
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -362,9 +387,19 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
           ),
           SizedBox(height: 10),
           Text(
-            "Check back later for new opportunities",
+            "You've seen all available opportunities\nCheck back later for new jobs",
             style: TextStyle(color: Colors.white70, fontSize: 14),
             textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              // Reset canceled offers to see all offers again
+              setState(() {
+                _canceledOffers.clear();
+              });
+            },
+            child: Text("Reset and Show All Offers"),
           ),
         ],
       ),
@@ -383,13 +418,17 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
           return _buildErrorState(offerProvider.error!);
         }
 
-        if (offerProvider.offers.isEmpty) {
+        final filteredOffers = _getFilteredOffers(
+          offerProvider.recommendedOffers,
+        );
+
+        if (filteredOffers.isEmpty) {
           return _buildEmptyState();
         }
 
         return Stack(
           children: [
-            _buildSwiper(offerProvider.offers),
+            _buildSwiper(filteredOffers),
 
             // Info Popup
             AnimatedBuilder(
@@ -469,12 +508,12 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSwiper(List<Offer> offers) {
+  Widget _buildSwiper(List<Offer> filteredOffers) {
     return Stack(
       children: [
         CardSwiper(
           controller: _swiperController,
-          cardsCount: offers.length,
+          cardsCount: filteredOffers.length,
           onSwipe: (prev, current, direction) {
             if (current != null) {
               setState(() {
@@ -482,24 +521,31 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
               });
             }
 
-            List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
-            final currentOffer = offers[_currentCardIndex];
+            final currentOffer = filteredOffers[_currentCardIndex];
 
             if (direction == CardSwiperDirection.right) {
-              if (!updatedFavorites.contains(currentOffer)) {
+              // Add to favorites
+              List<Offer> updatedFavorites = List.from(widget.favoriteOffers);
+              if (!updatedFavorites.any((fav) => fav.id == currentOffer.id)) {
                 updatedFavorites.add(currentOffer);
+                widget.onFavoritesUpdated(updatedFavorites);
               }
               _showSwipeFeedback(true);
             } else if (direction == CardSwiperDirection.left) {
-              updatedFavorites.remove(currentOffer);
+              // Add to canceled offers
+              if (!_canceledOffers.any(
+                (canceled) => canceled.id == currentOffer.id,
+              )) {
+                setState(() {
+                  _canceledOffers.add(currentOffer);
+                });
+              }
               _showSwipeFeedback(false);
             }
-
-            widget.onFavoritesUpdated(updatedFavorites);
             return true;
           },
           cardBuilder: (context, index, percentX, percentY) {
-            final offer = offers[index];
+            final offer = filteredOffers[index];
             return _buildOfferCard(offer);
           },
           numberOfCardsDisplayed: 1,
@@ -623,6 +669,52 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
             ),
           ),
 
+          // Predicted Fit Badge - ADDED THIS NEW WIDGET
+          if (offer.predictedFit != null)
+            Positioned(
+              top: 50,
+              right: 20,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      _getMatchColor(offer.predictedFit!),
+                      _getMatchColor(offer.predictedFit!).withOpacity(0.8),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.3),
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.thumb_up_alt, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${(offer.predictedFit! * 100).toStringAsFixed(0)}% match',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           // Content
           Padding(
             padding: const EdgeInsets.all(20.0),
@@ -651,7 +743,7 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          offer.company,
+                          offer.company.name,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -737,6 +829,14 @@ class SwipePageState extends State<SwipePage> with TickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  // Helper method to determine badge color based on match percentage
+  Color _getMatchColor(double predictedFit) {
+    if (predictedFit >= 0.8) return Colors.green;
+    if (predictedFit >= 0.6) return Colors.lightGreen;
+    if (predictedFit >= 0.4) return Colors.orange;
+    return Colors.red;
   }
 
   Widget _buildActionButtons() {
