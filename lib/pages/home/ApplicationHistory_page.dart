@@ -640,7 +640,10 @@ class _ApplicationHistoryPageState extends State<ApplicationHistoryPage> {
                     backgroundColor: Colors.blue,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
-                  child: const Text("Close"),
+                  child: const Text(
+                    "Close",
+                    style: TextStyle(color: Colors.white, fontSize: 15),
+                  ),
                 ),
               ),
             ],

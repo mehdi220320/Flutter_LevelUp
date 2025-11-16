@@ -3,6 +3,7 @@ import 'package:levelup/pages/authScreens/login.dart';
 import 'package:levelup/pages/home/swipe_page.dart';
 import 'package:levelup/pages/home/favorites_page.dart';
 import 'package:levelup/pages/home/ApplicationHistory_page.dart';
+import 'package:levelup/pages/screens/profile_page.dart';
 import 'package:levelup/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -100,6 +101,12 @@ class HomePageState extends State<HomePage> {
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (context) => LoginPage()),
             (route) => false,
+          );
+        } else if (text == "Profile") {
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfilePage()),
           );
         } else {
           Navigator.of(context).pop();

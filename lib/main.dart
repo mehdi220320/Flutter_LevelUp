@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:levelup/providers/application_provider.dart';
 import 'package:levelup/providers/offer_provider.dart';
+import 'package:levelup/providers/profile_provider.dart';
 import 'package:levelup/screens/splash_screen.dart';
 import 'package:levelup/screens/onboarding.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +15,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => OfferProvider()),
         ChangeNotifierProvider(create: (_) => ApplicationProvider()),
+        ChangeNotifierProvider(create: (context) => ProfileProvider()),
       ],
       child: const MyApp(),
     ),
