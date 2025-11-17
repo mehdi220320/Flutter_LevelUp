@@ -14,12 +14,14 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
   bool get isAuthenticated => _user != null;
 
+  // In AuthProvider
   Future<void> register({
     required String username,
     required String email,
     required String password,
     required String firstName,
     required String lastName,
+    required int universityId,
   }) async {
     _loading = true;
     _error = null;
@@ -32,8 +34,11 @@ class AuthProvider extends ChangeNotifier {
         password: password,
         firstName: firstName,
         lastName: lastName,
+        universityId: universityId,
       );
-      _user = result['user'];
+      _user = User.fromJson(
+        result['user'],
+      ); // Adjust based on your response structure
     } catch (e) {
       _error = e.toString();
       rethrow;

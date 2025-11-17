@@ -3,6 +3,7 @@ import 'package:levelup/pages/authScreens/login.dart';
 import 'package:levelup/pages/home/swipe_page.dart';
 import 'package:levelup/pages/home/favorites_page.dart';
 import 'package:levelup/pages/home/ApplicationHistory_page.dart';
+import 'package:levelup/pages/screens/helpANDsupportScreen.dart';
 import 'package:levelup/pages/screens/profile_page.dart';
 import 'package:levelup/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -107,6 +108,12 @@ class HomePageState extends State<HomePage> {
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ProfilePage()),
+          );
+        } else if (text == "Help & Support") {
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const HelpSupportPage()),
           );
         } else {
           Navigator.of(context).pop();

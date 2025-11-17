@@ -34,12 +34,14 @@ class AuthService {
     await _storage.delete(key: 'user');
   }
 
+  // In AuthService
   Future<Map<String, dynamic>> register({
     required String username,
     required String email,
     required String password,
     required String firstName,
     required String lastName,
+    required int universityId,
   }) async {
     final url = Uri.parse('$baseUrl/register/');
     final body = jsonEncode({
@@ -48,6 +50,7 @@ class AuthService {
       "password": password,
       "first_name": firstName,
       "last_name": lastName,
+      "university_id": universityId,
     });
 
     final response = await http.post(
@@ -61,12 +64,13 @@ class AuthService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       final access = responseBody['access'];
       final refresh = responseBody['refresh'];
+
       final userJson = responseBody['user'];
 
       final user = User.fromJson(userJson);
       await _saveTokens(access, refresh, user);
 
-      return {"user": user, "access": access, "refresh": refresh};
+      return responseBody;
     } else {
       throw Exception(responseBody['detail'] ?? 'Registration failed');
     }

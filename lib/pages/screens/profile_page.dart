@@ -588,7 +588,6 @@ class ProfilePageState extends State<ProfilePage> {
   }
 }
 
-// Edit Profile Dialog Widget
 class EditProfileDialog extends StatefulWidget {
   final ProfileProvider profileProvider;
 
@@ -613,18 +612,15 @@ class EditProfileDialogState extends State<EditProfileDialog> {
     super.initState();
     final profile = widget.profileProvider.profile;
 
-    // Initialize controllers with safe values
     _fieldOfStudyController = TextEditingController(
       text: profile?.fieldOfStudy ?? '',
     );
     _skillController = TextEditingController();
 
-    // Initialize selected items from current profile with null safety
     _selectedSkills = profile?.skills?.map((s) => s.name).toList() ?? [];
     _selectedCertifications =
         profile?.certifications?.map((c) => c.name).toList() ?? [];
 
-    // Delay data fetching to avoid build conflicts
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchData();
     });
@@ -693,6 +689,7 @@ class EditProfileDialogState extends State<EditProfileDialog> {
 
         if (mounted) {
           Navigator.of(context).pop();
+          widget.profileProvider.fetchMyProfile();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Profile updated successfully!'),
@@ -759,9 +756,9 @@ class EditProfileDialogState extends State<EditProfileDialog> {
         ),
         const SizedBox(height: 12),
 
-        // Selected Skills (Badges)
         if (_selectedSkills.isNotEmpty) ...[
           Container(
+            constraints: const BoxConstraints(maxHeight: 140),
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -769,53 +766,55 @@ class EditProfileDialogState extends State<EditProfileDialog> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.purple.withOpacity(0.5)),
             ),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _selectedSkills
-                  .map(
-                    (skill) => Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.purple,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            skill,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () => _removeSkill(skill),
-                            child: Container(
-                              width: 16,
-                              height: 16,
-                              decoration: const BoxDecoration(
+            child: SingleChildScrollView(
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _selectedSkills
+                    .map(
+                      (skill) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.purple,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              skill,
+                              style: const TextStyle(
                                 color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.purple,
-                                size: 12,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () => _removeSkill(skill),
+                              child: Container(
+                                width: 16,
+                                height: 16,
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.purple,
+                                  size: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  )
-                  .toList(),
+                    )
+                    .toList(),
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -910,7 +909,7 @@ class EditProfileDialogState extends State<EditProfileDialog> {
           )
         else if (availableSkills.isNotEmpty)
           Container(
-            constraints: const BoxConstraints(maxHeight: 120),
+            constraints: const BoxConstraints(maxHeight: 160),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.3),
               borderRadius: BorderRadius.circular(12),
@@ -918,40 +917,44 @@ class EditProfileDialogState extends State<EditProfileDialog> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: availableSkills
-                    .map(
-                      (skill) => FilterChip(
-                        label: Text(
-                          skill.name,
-                          style: TextStyle(
-                            color: _selectedSkills.contains(skill.name)
-                                ? Colors.white
-                                : Colors.white70,
-                            fontWeight: _selectedSkills.contains(skill.name)
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+              child: SingleChildScrollView(
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: availableSkills
+                      .map(
+                        (skill) => FilterChip(
+                          label: Text(
+                            skill.name,
+                            style: TextStyle(
+                              color: _selectedSkills.contains(skill.name)
+                                  ? Colors.white
+                                  : Colors.black, // Changed for better contrast
+                              fontWeight: _selectedSkills.contains(skill.name)
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          selected: _selectedSkills.contains(skill.name),
+                          onSelected: (selected) {
+                            if (selected) {
+                              _addSkill(skill.name);
+                            } else {
+                              _removeSkill(skill.name);
+                            }
+                          },
+                          backgroundColor: _selectedSkills.contains(skill.name)
+                              ? Colors.purple
+                              : Colors.grey.shade300, // Better contrast
+                          selectedColor: Colors.purple,
+                          checkmarkColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        selected: _selectedSkills.contains(skill.name),
-                        onSelected: (selected) {
-                          if (selected) {
-                            _addSkill(skill.name);
-                          } else {
-                            _removeSkill(skill.name);
-                          }
-                        },
-                        backgroundColor: Colors.grey.withOpacity(0.2),
-                        selectedColor: Colors.purple,
-                        checkmarkColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    )
-                    .toList(),
+                      )
+                      .toList(),
+                ),
               ),
             ),
           )
@@ -1039,7 +1042,7 @@ class EditProfileDialogState extends State<EditProfileDialog> {
           )
         else if (availableCertifications.isNotEmpty)
           Container(
-            constraints: const BoxConstraints(maxHeight: 200),
+            constraints: const BoxConstraints(maxHeight: 400),
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.3),
               borderRadius: BorderRadius.circular(12),
@@ -1121,7 +1124,7 @@ class EditProfileDialogState extends State<EditProfileDialog> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
           maxWidth: MediaQuery.of(context).size.width * 0.9,
         ),
         child: Padding(
@@ -1130,7 +1133,6 @@ class EditProfileDialogState extends State<EditProfileDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               const Row(
                 children: [
                   Icon(Icons.edit, color: Colors.blue, size: 24),
@@ -1147,16 +1149,15 @@ class EditProfileDialogState extends State<EditProfileDialog> {
               ),
               const SizedBox(height: 20),
 
-              // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(top: 5),
                   child: Form(
                     key: _formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Field of Study
                         TextFormField(
                           controller: _fieldOfStudyController,
                           style: const TextStyle(color: Colors.white),
@@ -1197,14 +1198,14 @@ class EditProfileDialogState extends State<EditProfileDialog> {
 
                         // Certifications Section
                         _buildCertificationsSection(),
+                        const SizedBox(height: 8), // Reduced space
                       ],
                     ),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
-
+              const SizedBox(height: 16), // Reduced space
               // Buttons (fixed at bottom)
               Row(
                 children: [

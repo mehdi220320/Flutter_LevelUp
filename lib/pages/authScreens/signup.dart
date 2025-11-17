@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:levelup/pages/authScreens/login.dart';
 import 'package:levelup/pages/home/home.dart';
 import 'package:levelup/providers/auth_provider.dart';
+import 'package:levelup/providers/university_provider.dart';
 import 'package:levelup/widgets/gradient_button.dart';
 import 'package:provider/provider.dart';
 
@@ -18,6 +19,20 @@ class _SignupPageState extends State<SignupPage> {
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   bool _obscurePassword = true;
+  int? _selectedUniversityId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Fetch universities when page initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final universityProvider = Provider.of<UniversityProvider>(
+        context,
+        listen: false,
+      );
+      universityProvider.fetchAllUniversities();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -242,6 +257,74 @@ class _SignupPageState extends State<SignupPage> {
 
                     SizedBox(height: 20),
 
+                    // University dropdown
+                    Consumer<UniversityProvider>(
+                      builder: (context, universityProvider, child) {
+                        return DropdownButtonFormField<int>(
+                          value: _selectedUniversityId,
+                          style: TextStyle(color: Colors.white),
+                          decoration: InputDecoration(
+                            labelText: "Université",
+                            labelStyle: TextStyle(
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                            prefixIcon: Icon(
+                              Icons.school_outlined,
+                              color: Colors.white.withOpacity(0.7),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Color(0xFFFF3868)),
+                            ),
+                            filled: true,
+                            fillColor: Color(0xFF1A1A1A),
+                          ),
+                          items: universityProvider.universities.map((
+                            university,
+                          ) {
+                            return DropdownMenuItem<int>(
+                              value: university.id,
+                              child: Text(
+                                university.name,
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (int? value) {
+                            setState(() {
+                              _selectedUniversityId = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'Veuillez sélectionner une université';
+                            }
+                            return null;
+                          },
+                          dropdownColor: Color(0xFF1A1A1A),
+                          icon: Icon(
+                            Icons.arrow_drop_down,
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          isExpanded: true,
+                        );
+                      },
+                    ),
+
+                    SizedBox(height: 20),
+
                     // Password field
                     TextFormField(
                       controller: _passwordController,
@@ -311,6 +394,18 @@ class _SignupPageState extends State<SignupPage> {
                           final firstName = _firstNameController.text.trim();
                           final lastName = _lastNameController.text.trim();
 
+                          if (_selectedUniversityId == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  "Veuillez sélectionner une université",
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                            return;
+                          }
+
                           try {
                             // Call the provider to register
                             await Provider.of<AuthProvider>(
@@ -322,6 +417,7 @@ class _SignupPageState extends State<SignupPage> {
                               password: password,
                               firstName: firstName,
                               lastName: lastName,
+                              universityId: _selectedUniversityId!,
                             );
 
                             // Navigate automatically after successful signup
